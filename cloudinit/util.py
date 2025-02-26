@@ -481,6 +481,11 @@ def is_NetBSD():
 def is_OpenBSD():
     return system_info()["variant"] == "openbsd"
 
+@lru_cache()
+def is_RedSeal():
+    name, _, _ = system_info()["dist"]
+    return name == "redseal"
+
 
 def get_cfg_option_bool(yobj, key, default=False):
     if key not in yobj:
@@ -548,7 +553,14 @@ def get_linux_distro():
     flavor = ""
     os_release = {}
     os_release_rhel = False
-    if os.path.exists("/etc/os-release"):
+    if os.path.exists("/etc/reseal-release"):
+        with open("/etc/redseal-release", encoding="utf-8") as f:
+            redseal_release = f.read().split(" ")
+            distro_name = redseal_release[0].strip().lower()
+            distro_version = redseal_release[1].strip().lower()
+            # Hacky - return early (internal tooling methodology)
+            return (distro_name, distro_version, flavor)
+    elif os.path.exists("/etc/os-release"):
         os_release = load_shell_content(load_text_file("/etc/os-release"))
     if not os_release:
         os_release_rhel = True
@@ -634,7 +646,7 @@ def _get_variant(info):
             variant = linux_dist
         elif linux_dist in ("ubuntu", "linuxmint", "mint"):
             variant = "ubuntu"
-        elif linux_dist == "redhat":
+        elif linux_dist ("redhat", "redseal"):
             variant = "rhel"
         elif linux_dist in (
             "opensuse",
