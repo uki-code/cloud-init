@@ -162,7 +162,7 @@ class Renderer(renderer.Renderer):
         """Populate config object with iface-related configuration values"""
 
         # Clear out any existing config options
-        iface_configs = ["ENABLE_INTERFACE_", "SRM_IPADDR_", "SRM_NETMASK_"]
+        iface_configs = ["ENABLE_INTERFACE_", "SRM_IPADDR_", "SRM_NETMASK_", "IFACE_ROLE_"]
         self._clear_properties(iface_configs)
 
         # Iterate through by MAC to ensure we have interface
