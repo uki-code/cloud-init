@@ -553,7 +553,7 @@ def get_linux_distro():
     flavor = ""
     os_release = {}
     os_release_rhel = False
-    if os.path.exists("/etc/reseal-release"):
+    if os.path.exists("/etc/redseal-release"):
         with open("/etc/redseal-release", encoding="utf-8") as f:
             redseal_release = f.read().split(" ")
             distro_name = redseal_release[0].strip().lower()
@@ -646,7 +646,7 @@ def _get_variant(info):
             variant = linux_dist
         elif linux_dist in ("ubuntu", "linuxmint", "mint"):
             variant = "ubuntu"
-        elif linux_dist ("redhat", "redseal"):
+        elif linux_dist in ("redhat", "redseal"):
             variant = "rhel"
         elif linux_dist in (
             "opensuse",
