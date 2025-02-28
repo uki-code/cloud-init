@@ -173,7 +173,7 @@ class Renderer(renderer.Renderer):
 
             # TODO: Move this to a redseal-specific module
             # set interface as an admin interface to support SSH
-            self.config_obj[f"IFACE_ROLE_{device_name}"] = "server-admin,data-collection"
+            self.config_obj[f"IFACE_ROLE_{device_name}"] = "server-admin"
 
             for subnet in interface.get("subnets", []):
 
