@@ -172,8 +172,8 @@ class Renderer(renderer.Renderer):
             device_name = ifname_by_mac[interface.get("mac_address")]
 
             # TODO: Move this to a redseal-specific module
-            # set interface as an admin interface to support SSH
-            self.config_obj[f"IFACE_ROLE_{device_name}"] = "server-admin"
+            # set interface as an admin and model interface to support SSH and WebGUI
+            self.config_obj[f"IFACE_ROLE_{device_name}"] = "server-admin,model-admin"
 
             for subnet in interface.get("subnets", []):
 
