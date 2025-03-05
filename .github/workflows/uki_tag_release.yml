@@ -33,7 +33,7 @@ jobs:
           ARTIFACT_REPO: "${{ env.REGISTRY }}/${{ github.repository }}/${{ env.ARTIFACT_PREFIX }}${{ github.event.repository.name }}"
           ARTIFACT_VERSION: ${{ github.ref_name }}
         run: |
-          tar  --exclude='**/.git' -czf ${{ github.event.repository.name }}-${ARTIFACT_VERSION}.tar.gz ${{ github.event.repository.name }}
+          tar  --exclude='**/.git' -czf ${{ env.ARTIFACT_PREFIX }}${{ github.event.repository.name }}-${ARTIFACT_VERSION}.tar.gz ${{ github.event.repository.name }}
           EXTRA_TAGS=""
           if [[ "$ARTIFACT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             EXTRA_TAGS=",latest"
@@ -45,5 +45,5 @@ jobs:
             --annotation "org.opencontainers.image.source=github.com/${{ github.repository }}" \
             --annotation "org.opencontainers.image.revision=${{ github.sha }}" \
             ${ARTIFACT_REPO}:${ARTIFACT_VERSION}${EXTRA_TAGS} \
-            ${{ github.event.repository.name }}-${ARTIFACT_VERSION}.tar.gz
+            ${{ env.ARTIFACT_PREFIX }}${{ github.event.repository.name }}-${ARTIFACT_VERSION}.tar.gz
 
