@@ -6,6 +6,7 @@ from cloudinit.net import (
     RendererNotFoundError,
     eni,
     freebsd,
+    pfsense,
     netbsd,
     netplan,
     network_manager,
@@ -19,6 +20,7 @@ from cloudinit.net import (
 NAME_TO_RENDERER = {
     "eni": eni,
     "freebsd": freebsd,
+    "pfsense": pfsense,
     "netbsd": netbsd,
     "netplan": netplan,
     "network-manager": network_manager,
@@ -34,6 +36,7 @@ DEFAULT_PRIORITY = [
     "netplan",
     "network-manager",
     "freebsd",
+    "pfsense",
     "netbsd",
     "openbsd",
     "networkd"

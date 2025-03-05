@@ -482,10 +482,14 @@ def is_OpenBSD():
     return system_info()["variant"] == "openbsd"
 
 @lru_cache()
+def is_PFSense():
+    name, _, _ = system_info()["dist"]
+    return name == "pfsense"
+
+@lru_cache()
 def is_RedSeal():
     name, _, _ = system_info()["dist"]
     return name == "redseal"
-
 
 def get_cfg_option_bool(yobj, key, default=False):
     if key not in yobj:
@@ -591,8 +595,19 @@ def get_linux_distro():
         if distro_name == "rhel":
             distro_name = "redhat"
     elif is_BSD():
-        distro_name = platform.system().lower()
-        distro_version = platform.release()
+        bsd_distros = {
+            "pfsense": ("/etc/platform", "/etc/version"),
+        }
+        for _, (platform_file, version_file) in bsd_distros.items():
+            if os.path.exists(platform_file) and os.path.exists(version_file):
+                with open(platform_file, "r", encoding="utf-8") as f:
+                    distro_name = f.read().strip().lower()
+                with open(version_file, "r", encoding="utf-8") as f:
+                    distro_version = f.read().strip()
+                break
+        if not (distro_name and distro_version):
+            distro_name = platform.system().lower()
+            distro_version = platform.release()
     else:
         dist = ("", "", "")
         try:

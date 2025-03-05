@@ -1128,11 +1128,11 @@ class Init:
                 e,
             )
             return
-        except NotImplementedError:
-            LOG.warning(
-                "distro '%s' does not implement apply_network_config. "
+        except NotImplementedError as e:
+            LOG.exception(
+                "distro '%s' does not implement a required function. "
                 "networking may not be configured properly.",
-                self.distro,
+                self.distro, exc_info=e,
             )
             return
 

@@ -65,7 +65,7 @@ OSFAMILIES = {
     "aosc": ["aosc"],
     "arch": ["arch"],
     "debian": ["debian", "ubuntu"],
-    "freebsd": ["freebsd", "dragonfly"],
+    "freebsd": ["freebsd", "dragonfly", "pfsense"],
     "gentoo": ["gentoo", "cos"],
     "netbsd": ["netbsd"],
     "openbsd": ["openbsd"],
