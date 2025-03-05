@@ -11,6 +11,7 @@ from cloudinit.net import (
     network_manager,
     networkd,
     openbsd,
+    redseal,
     renderer,
     sysconfig,
 )
@@ -23,6 +24,7 @@ NAME_TO_RENDERER = {
     "network-manager": network_manager,
     "networkd": networkd,
     "openbsd": openbsd,
+    "redseal": redseal,
     "sysconfig": sysconfig,
 }
 
@@ -34,7 +36,7 @@ DEFAULT_PRIORITY = [
     "freebsd",
     "netbsd",
     "openbsd",
-    "networkd",
+    "networkd"
 ]
 
 
