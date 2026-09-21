@@ -157,7 +157,9 @@ def remove_config_element(tree_path, key=None, value=None, fp="/cf/conf/config.x
     # Remove element from parent node
     # if no key is specified, remove all elements
     for n in nodes:
-        if (key is None or value is None) or (key in n and n["key"].text == value):
+        if (key is None or value is None) or (
+            n.find(key) is not None and n.find(key).text == value
+        ):
             parent = n.getparent()
             parent.remove(n)
 
@@ -196,9 +198,11 @@ def set_config_value(tree_path, value, fp="/cf/conf/config.xml"):
 
     # Check if element exists
     if node is None or len(node) == 0:
-        parent = root.xpath(parent_path)[0]
-        node = ET.element(tag)
-        parent.append(node)
+        parents = root.xpath(parent_path)
+        if not parents:
+            raise ValueError("No such key: %s" % parent_path)
+        node = ET.Element(tag)
+        parents[0].append(node)
     else:
         node = node[0]
 

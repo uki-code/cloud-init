@@ -1028,6 +1028,34 @@ class TestGetLinuxDistro(CiTestCase):
         dist = util.get_linux_distro()
         self.assertEqual(("freebsd", "12.0-RELEASE-p10", ""), dist)
 
+    @mock.patch("platform.system")
+    @mock.patch("platform.release")
+    @mock.patch(M_PATH + "_parse_redhat_release")
+    def test_get_linux_pfsense(
+        self,
+        m_parse_redhat_release,
+        m_platform_release,
+        m_platform_system,
+        m_path_exists,
+    ):
+        """Verify pfSense is detected via /etc/platform + /etc/version."""
+        m_path_exists.side_effect = lambda p: p in (
+            "/etc/platform",
+            "/etc/version",
+        )
+        m_parse_redhat_release.return_value = {}
+        m_platform_system.return_value = "FreeBSD"
+        util.is_BSD.cache_clear()
+        platform_handle = mock.mock_open(read_data="pfSense\n")()
+        version_handle = mock.mock_open(read_data="2.7.2-RELEASE\n")()
+        with mock.patch(
+            M_PATH + "open",
+            side_effect=[platform_handle, version_handle],
+            create=True,
+        ):
+            dist = util.get_linux_distro()
+        self.assertEqual(("pfsense", "2.7.2-RELEASE", ""), dist)
+
     @mock.patch(M_PATH + "load_text_file")
     def test_get_linux_centos6(self, m_os_release, m_path_exists):
         """Verify we get the correct name and release name on CentOS 6."""
@@ -1336,6 +1364,47 @@ class TestGetLinuxDistro(CiTestCase):
         self.assertEqual(("foo", "1.1", "aarch64"), dist)
 
 
+class TestIsFreeBSD:
+    @mock.patch(M_PATH + "system_info")
+    def test_true_when_variant_is_freebsd(self, m_system_info):
+        m_system_info.return_value = {"variant": "freebsd"}
+        util.is_FreeBSD.cache_clear()
+        assert util.is_FreeBSD() is True
+
+    @mock.patch(M_PATH + "system_info")
+    def test_true_when_variant_is_pfsense(self, m_system_info):
+        # regression test: is_FreeBSD() used to do a literal == "freebsd"
+        # comparison, so once --distro=pfsense correctly made
+        # system_info()["variant"] resolve to "pfsense" on a real pfSense
+        # box, this silently started returning False there -- breaking
+        # every FreeBSD-kernel capability check gated on it (device/MAC
+        # enumeration, DMI querying, mount/swap handling, etc.), not just
+        # pfSense-specific code paths.
+        m_system_info.return_value = {"variant": "pfsense"}
+        util.is_FreeBSD.cache_clear()
+        assert util.is_FreeBSD() is True
+
+    @mock.patch(M_PATH + "system_info")
+    def test_false_when_variant_is_neither(self, m_system_info):
+        m_system_info.return_value = {"variant": "ubuntu"}
+        util.is_FreeBSD.cache_clear()
+        assert util.is_FreeBSD() is False
+
+
+class TestIsPFSense:
+    @mock.patch(M_PATH + "system_info")
+    def test_true_when_dist_is_pfsense(self, m_system_info):
+        m_system_info.return_value = {"dist": ("pfsense", "2.7.2", "")}
+        util.is_PFSense.cache_clear()
+        assert util.is_PFSense() is True
+
+    @mock.patch(M_PATH + "system_info")
+    def test_false_when_dist_is_not_pfsense(self, m_system_info):
+        m_system_info.return_value = {"dist": ("freebsd", "14.0", "")}
+        util.is_PFSense.cache_clear()
+        assert util.is_PFSense() is False
+
+
 class TestGetVariant:
     @pytest.mark.parametrize(
         "info, expected_variant",
@@ -1371,6 +1440,8 @@ class TestGetVariant:
             ({"system": "Windows", "dist": ("dontcare",)}, "windows"),
             ({"system": "Darwin", "dist": ("dontcare",)}, "darwin"),
             ({"system": "Freebsd", "dist": ("dontcare",)}, "freebsd"),
+            ({"system": "Freebsd", "dist": ("pfsense",)}, "pfsense"),
+            ({"system": "Freebsd", "dist": ("PFSENSE",)}, "pfsense"),
             ({"system": "Netbsd", "dist": ("dontcare",)}, "netbsd"),
             ({"system": "Openbsd", "dist": ("dontcare",)}, "openbsd"),
             ({"system": "Dragonfly", "dist": ("dontcare",)}, "dragonfly"),

@@ -1,7 +1,7 @@
 ## template:jinja
 # The top level settings are used as module
 # and base configuration.
-{% set is_bsd = variant in ["dragonfly", "freebsd", "netbsd", "openbsd"] %}
+{% set is_bsd = variant in ["dragonfly", "freebsd", "netbsd", "openbsd", "pfsense"] %}
 {% set is_rhel = variant in ["almalinux", "centos", "cloudlinux", "eurolinux",
                              "miraclelinux", "rhel", "rocky", "virtuozzo"] %}
 {% set gecos = ({"amazon": "EC2 Default User", "azurelinux": "Azure Linux",
@@ -9,7 +9,8 @@
                  "dragonfly": "DragonFly", "freebsd": "FreeBSD",
                  "mariner": "MarinerOS", "rhel": "Cloud User",
                  "netbsd": "NetBSD", "openbsd": "openBSD",
-                 "openmandriva": "OpenMandriva admin", "photon": "PhotonOS",
+                 "openmandriva": "OpenMandriva admin", "pfsense": "pfSense",
+                 "photon": "PhotonOS",
                  "ubuntu": "Ubuntu", "unknown": "Ubuntu"}) %}
 {% set groups = ({"alpine": "adm, wheel", "aosc": "wheel", "arch": "wheel, users",
                   "azurelinux": "wheel",
@@ -52,7 +53,7 @@ manage_etc_hosts: false
 
 # If this is set, 'root' will not be able to ssh in and they
 # will get a message to login instead as the default $user
-{% if variant in ["freebsd", "photon"] %}
+{% if variant in ["freebsd", "photon", "pfsense"] %}
 disable_root: false
 {% else %}
 disable_root: true
@@ -227,7 +228,7 @@ system_info:
   # This will affect which distro class gets used
 {% if variant in ["alpine", "amazon", "aosc", "arch", "azurelinux", "debian", "fedora",
                   "freebsd", "gentoo", "mariner", "netbsd", "openbsd",
-                  "OpenCloudOS", "openeuler", "openmandriva", "photon", "suse",
+                  "OpenCloudOS", "openeuler", "openmandriva", "pfsense", "photon", "suse",
                   "TencentOS", "ubuntu"] or is_rhel %}
   distro: {{ variant }}
 {% elif variant == "dragonfly" %}
@@ -296,7 +297,7 @@ system_info:
 {% elif variant == "fedora" %}
   network:
     renderers: ['netplan', 'network-manager', 'networkd', 'sysconfig', 'eni']
-{% elif variant in ["freebsd", "netbsd", "openbsd"] %}
+{% elif variant in ["freebsd", "netbsd", "openbsd", "pfsense"] %}
   network:
     renderers: ['{{ variant }}']
 {% elif variant in ["azurelinux", "mariner", "photon"] %}

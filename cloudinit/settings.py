@@ -8,18 +8,11 @@
 #
 # This file is part of cloud-init. See LICENSE file for license information.
 
-import os
-
 # Set and read for determining the cloud config file location
 CFG_ENV_NAME = "CLOUD_CFG"
 
 # This is expected to be a yaml formatted file
-if os.uname()[0] in ["FreeBSD", "DragonFly", "OpenBSD"]:
-    CLOUD_CONFIG = "/usr/local/etc/cloud/cloud.cfg"
-    templates_dir = "/usr/local/etc/cloud/templates/"
-else:
-    CLOUD_CONFIG = "/etc/cloud/cloud.cfg"
-    templates_dir = "/etc/cloud/templates/"
+CLOUD_CONFIG = "/etc/cloud/cloud.cfg"
 
 CLEAN_RUNPARTS_DIR = "/etc/cloud/clean.d"
 
@@ -68,7 +61,7 @@ CFG_BUILTIN = {
         "paths": {
             "cloud_dir": "/var/lib/cloud",
             "docs_dir": "/usr/share/doc/cloud-init/",
-            "templates_dir": templates_dir,
+            "templates_dir": "/etc/cloud/templates/",
         },
         "distro": "ubuntu",
         "network": {"renderers": None},

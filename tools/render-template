@@ -33,6 +33,7 @@ def main():
         "openeuler",
         "OpenCloudOS",
         "openmandriva",
+        "pfsense",
         "photon",
         "rhel",
         "suse",

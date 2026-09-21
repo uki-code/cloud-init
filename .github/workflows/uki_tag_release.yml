@@ -1,0 +1,63 @@
+name: Create and upload release on tag
+
+on:
+  push:
+    tags:
+      - "*"  # Runs for any tag
+
+env:
+  REGISTRY: ghcr.io
+  ARTIFACT_PREFIX: uki-
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: ${{ github.event.repository.name }}
+
+      - name: Install ORAS
+        uses: oras-project/setup-oras@v1
+
+      - name: Authenticate ORAS
+        env:
+          USERNAME: ${{ github.actor }}
+          PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo $PASSWORD | oras login -u $USERNAME --password-stdin $REGISTRY
+
+      - name: Compress And Push Artifacts
+        env:
+          ARTIFACT_REPO: "${{ env.REGISTRY }}/${{ github.repository }}/${{ env.ARTIFACT_PREFIX }}${{ github.event.repository.name }}"
+          # The fork's own version (see the versioning scheme this repo
+          # uses): <upstream>+uki<N>, e.g. 24.4.1+uki1. This is the git tag
+          # itself and what _PACKAGED_VERSION gets set to during packaging
+          # -- valid in both contexts, `+` is fine for git tags and for a
+          # free-form Python string.
+          ARTIFACT_VERSION: ${{ github.ref_name }}
+        run: |
+          tar  --exclude='**/.git' -czf ${{ env.ARTIFACT_PREFIX }}${{ github.event.repository.name }}-${ARTIFACT_VERSION}.tar.gz ${{ github.event.repository.name }}
+
+          # Docker/OCI tags only allow [A-Za-z0-9_.-] -- confirmed `+` is
+          # rejected by ghcr.io (and Docker generally), even though the raw
+          # OCI spec is more permissive. Sanitize for the *registry tag*
+          # only; ARTIFACT_VERSION (used in annotations below, and what
+          # _PACKAGED_VERSION gets set to elsewhere in this repo's tooling)
+          # keeps the real, unsanitized fork version.
+          OCI_TAG="${ARTIFACT_VERSION//+/-}"
+
+          EXTRA_TAGS=""
+          if [[ "$OCI_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+-uki[0-9]+$ ]]; then
+            EXTRA_TAGS=",latest"
+          fi
+          oras push \
+            --annotation "org.opencontainers.image.title=${{ env.ARTIFACT_PREFIX }}${{github.event.repository.name}} ${ARTIFACT_VERSION}" \
+            --annotation "org.opencontainers.image.ref.name=${{ env.ARTIFACT_PREFIX }}${{github.event.repository.name}}:${OCI_TAG}" \
+            --annotation "org.opencontainers.image.version=${ARTIFACT_VERSION}" \
+            --annotation "org.opencontainers.image.source=github.com/${{ github.repository }}" \
+            --annotation "org.opencontainers.image.revision=${{ github.sha }}" \
+            ${ARTIFACT_REPO}:${OCI_TAG}${EXTRA_TAGS} \
+            ${{ env.ARTIFACT_PREFIX }}${{ github.event.repository.name }}-${ARTIFACT_VERSION}.tar.gz
+

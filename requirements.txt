@@ -34,5 +34,10 @@ jsonschema
 # disk.
 netifaces>=0.10.4
 
-# Used by pfSense for passwd hashing
+# Used by pfSense for passwd hashing.
+# Also declared in build-port/Makefile's RUN_DEPENDS -- keep both in sync.
 bcrypt
+
+# Used by pfSense to read/write config.xml.
+# Also declared in build-port/Makefile's RUN_DEPENDS -- keep both in sync.
+lxml

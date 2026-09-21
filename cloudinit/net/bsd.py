@@ -34,6 +34,7 @@ class BSDRenderer(renderer.Renderer):
         self.target = None
         self.interface_configurations = {}
         self.interface_configurations_ipv6 = {}
+        self.interface_identities = {}
         self._postcmds = config.get("postcmds", True)
 
     def _ifconfig_entries(self, settings):
@@ -43,6 +44,7 @@ class BSDRenderer(renderer.Renderer):
             device_mac = interface.get("mac_address")
             if device_name and re.match(r"^lo\d+$", device_name):
                 continue
+            cur_name = None
             if device_mac not in ifname_by_mac:
                 LOG.info("Cannot find any device with MAC %s", device_mac)
             elif device_mac and device_name:
@@ -63,8 +65,24 @@ class BSDRenderer(renderer.Renderer):
 
             else:
                 device_name = ifname_by_mac[device_mac]
+                cur_name = device_name
 
             LOG.info("Configuring interface %s", device_name)
+
+            self.interface_identities[device_name] = {
+                "config_id": interface.get("config_id"),
+                "mac_address": device_mac,
+                # The devname this MAC resolved to *before* any rename
+                # above took effect this render -- a persisted config
+                # (e.g. pfSense's config.xml) read at the top of this
+                # same render still reflects that pre-rename name, since
+                # the rename just happened live and nothing has written
+                # the persisted config yet. Lets a renderer recognize
+                # "this is the same device the persisted config already
+                # knows about, just under its old name" instead of
+                # treating it as unclaimed.
+                "prior_devname": cur_name,
+            }
 
             for subnet in interface.get("subnets", []):
                 if subnet.get("type") == "static":

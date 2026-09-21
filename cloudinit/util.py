@@ -464,7 +464,11 @@ def is_BSD():
 
 @lru_cache()
 def is_FreeBSD():
-    return system_info()["variant"] == "freebsd"
+    # pfSense is a FreeBSD derivative (system_info()["variant"] == "pfsense"
+    # since --distro=pfsense was wired up) -- is_FreeBSD() means "are we on
+    # a FreeBSD kernel," which pfSense genuinely is. is_PFSense() below is
+    # for call sites that need to distinguish the two specifically.
+    return system_info()["variant"] in ("freebsd", "pfsense")
 
 
 @lru_cache()
@@ -663,6 +667,12 @@ def _get_variant(info):
             variant = "suse"
         else:
             variant = "linux"
+    elif system == "freebsd" and info["dist"][0].lower() == "pfsense":
+        # pfSense reports platform.system() == "FreeBSD" like any other
+        # FreeBSD derivative, so it must be distinguished via the finer-
+        # grained distro name (get_linux_distro()'s pfSense detection)
+        # before falling into the generic FreeBSD bucket below.
+        variant = "pfsense"
     elif system in (
         "windows",
         "darwin",

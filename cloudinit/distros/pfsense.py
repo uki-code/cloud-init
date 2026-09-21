@@ -19,6 +19,10 @@ class Distro(cloudinit.distros.freebsd.Distro):
     Distro subclass for pfSense
     """
 
+    # pfSense (unlike stock FreeBSD) creates user homes directly under
+    # /home, not /usr/home.
+    home_dir = "/home"
+
     user_node = "/pfsense/system/user"
     group_node = "/pfsense/system/group"
     next_uid_node = "/pfsense/system/nextuid"
@@ -245,10 +249,16 @@ class Distro(cloudinit.distros.freebsd.Distro):
             return False
 
         # Check if user exists and is locked
+        # NOTE: "disabled" is a boolean-flag-style element (same
+        # convention as "enable" elsewhere in this file): its presence
+        # means locked, regardless of its value, which is always an
+        # empty tag ("" written, None once read back through
+        # _element_to_dict) -- checking truthiness of the value instead
+        # of presence of the key would never match a real locked user.
         users = pf_utils.get_config_elements(Distro.user_node)
         node = None
         for u in users:
-            if u["name"] == name and u.get("disabled"):
+            if u["name"] == name and "disabled" in u:
                 node = u
                 break
 
